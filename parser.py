@@ -36,7 +36,12 @@ class Parser:
             print(self.curToken.kind)
     
     def addError(self, message):
-        self.error += 'line ' + str(self.lexer.lineNo) + ':' + str(self.linePos - len(self.curToken.text) - 1) + ' '
+        linePos = self.linePos - len(self.curToken.text) - 1
+        lineNo = self.lexer.lineNo
+        if linePos == -1:
+            lineNo -= 1
+            linePos = self.lexer.prevLinePos
+        self.error += 'line ' + str(lineNo) + ':' + str(linePos) + ' '
         self.error += message
         sys.exit("Parsing error. \n\t" + self.error)
 
@@ -86,6 +91,8 @@ class Parser:
             print("IF")
             self.nextToken()
             self.emitter.emit('if(')
+            if self.checkToken(TokenType.NEWLINE):
+                self.addError("Expected comparison after 'if'.")
             self.comparison()
 
             # Goes on until it finds not nl
@@ -93,8 +100,23 @@ class Parser:
             self.emitter.emitLine('){')
 
             while not self.checkToken(TokenType.END):
+                if self.checkToken(TokenType.ELSEIF):
+                    self.nextToken()
+                    self.emitter.emitLine('} else if (')
+                    if self.checkToken(TokenType.NEWLINE):
+                        self.addError("Expected comparison after 'elseif'.")
+                    self.comparison()
+
+                    # Goes on until it finds not nl
+                    self.nl()
+                    self.emitter.emitLine('){')
+                elif self.checkToken(TokenType.ELSE):
+                    self.nextToken()
+                    self.emitter.emitLine('} else {')
+                    self.nl()
                 self.statement()
-            
+                print("yo")
+
             print('IF-END')
             self.match(TokenType.END)
             self.emitter.emitLine('}')

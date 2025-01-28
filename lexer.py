@@ -7,6 +7,7 @@ class Lexer:
         self.curChar = ''
         self.curPos = -1
         self.lineNo = 1
+        self.prevLinePos = 0
         self.linePos = 0
         self.error = ''
         self.nextChar()
@@ -137,6 +138,7 @@ class Lexer:
         elif self.curChar == '\n':
             token = Token('\\n', TokenType.NEWLINE)
             self.lineNo += 1
+            self.prevLinePos = self.linePos
             self.linePos = 1
         elif self.curChar == '\0':
             token = Token('', TokenType.EOF)
@@ -176,10 +178,12 @@ class TokenType(enum.Enum):
     INPUT = 104
     VAR = 105
     IF = 106
-    END = 108
-    WHILE = 109
-    REPEAT = 110
-    FOR = 111
+    ELSEIF = 107
+    ELSE = 108
+    END = 109
+    WHILE = 110
+    REPEAT = 111
+    FOR = 112
     # Operators.
     EQ = 201  
     PLUS = 202
